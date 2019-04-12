@@ -21,7 +21,7 @@ type Backoff struct {
 	//Jitter eases contention by randomizing backoff steps
 	Jitter bool
 
-	// Min and Max are the minimum and maximum values of the counter
+	// Min and Max are the minimum and maximum values of the backoff control
 	MinDelay time.Duration
 	MaxDelay time.Duration
 }

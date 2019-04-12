@@ -9,6 +9,7 @@ func Test1(t *testing.T) {
 	b := NewBackOff(
 		WithMinDelay(100*time.Millisecond),
 		WithMaxDelay(10*time.Second),
+		WithFactor(2),
 	)
 
 	equals(t, b.Duration(), 100*time.Millisecond)
