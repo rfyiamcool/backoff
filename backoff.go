@@ -4,6 +4,7 @@ import (
 	"context"
 	"math"
 	"math/rand"
+	"sync/atomic"
 	"time"
 )
 
@@ -15,7 +16,7 @@ var (
 )
 
 type Backoff struct {
-	Attempts float64
+	attempts uint64
 	Factor   float64
 
 	//Jitter eases contention by randomizing backoff steps
@@ -55,7 +56,7 @@ func WithFactor(v float64) BackoffOption {
 func NewBackOff(opts ...BackoffOption) *Backoff {
 	var (
 		bo = &Backoff{
-			Attempts: 0,
+			attempts: 0,
 			Factor:   defaultFactor,
 			Jitter:   defaultJitter,
 			MinDelay: defaultMinDelay,
@@ -83,7 +84,7 @@ func (b *Backoff) beRevise() {
 }
 
 func (b *Backoff) Duration() time.Duration {
-	dur := float64(b.MinDelay) * math.Pow(b.Factor, b.Attempts)
+	dur := float64(b.MinDelay) * math.Pow(b.Factor, float64(b.attempts))
 	if b.Jitter == true {
 		dur = rand.Float64()*(dur-float64(b.MinDelay)) + float64(b.MinDelay)
 	}
@@ -91,7 +92,7 @@ func (b *Backoff) Duration() time.Duration {
 		return b.MaxDelay
 	}
 
-	b.Attempts++
+	atomic.AddUint64(&b.attempts, 1)
 	return time.Duration(dur)
 }
 
@@ -116,5 +117,15 @@ func (b *Backoff) SleepCtx(ctx context.Context) {
 
 //Resets the current value of the counter back to Min
 func (b *Backoff) Reset() {
-	b.Attempts = 0
+	atomic.StoreUint64(&b.attempts, 0)
+}
+
+// Attempts
+func (b *Backoff) Attempts() uint64 {
+	return atomic.LoadUint64(&b.attempts)
+}
+
+// AttemptsInt
+func (b *Backoff) AttemptsInt() int {
+	return int(atomic.LoadUint64(&b.attempts))
 }

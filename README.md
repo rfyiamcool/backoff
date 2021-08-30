@@ -1,6 +1,6 @@
 # backoff
 
-backoff policy, avoid 'thundering herd' effect
+backoff policy, avoid `thundering herd` effect. the backoff lib is concurrent-safe.
 
 ## Install:
 
